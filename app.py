@@ -16,8 +16,8 @@ from flask import (
 # ==================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.dirname(BASE_DIR)
-FRONTEND_DIR = os.path.join(PROJECT_DIR, "frontend")
+PROJECT_DIR = BASE_DIR
+FRONTEND_DIR = PROJECT_DIR
 DATABASE = os.path.join(BASE_DIR, "events.db")
 
 app = Flask(__name__)
