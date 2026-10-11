@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>My Events - Salesforce AI Event Manager</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6f9;
+    color: #172033;
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 240px;
+    height: 100vh;
+    background: #032d60;
+    color: white;
+    padding: 25px 15px;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.logo span {
+    color: #00a1e0;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    padding: 14px 15px;
+    margin: 7px 0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.menu li:hover,
+.menu .active {
+    background: #0b5cab;
+}
+
+.main {
+    margin-left: 240px;
+    padding: 35px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 7px;
+}
+
+.header p {
+    color: #666;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn {
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.create-btn {
+    background: #0b5cab;
+}
+
+.csv-btn {
+    background: #16803c;
+}
+
+.refresh-btn {
+    background: #526477;
+}
+
+.delete-btn {
+    background: #d32f2f;
+    padding: 8px 12px;
+}
+
+.btn:hover {
+    opacity: 0.88;
+}
+
+.events-container {
+    background: white;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.summary {
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.event-card {
+    border: 1px solid #e1e5ea;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.event-card:last-child {
+    margin-bottom: 0;
+}
+
+.event-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.event-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #032d60;
+    overflow-wrap: anywhere;
+}
+
+.status {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.event-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    color: #555;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.description {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    color: #555;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.event-actions {
+    margin-top: 15px;
+    text-align: right;
+}
+
+.empty,
+.loading {
+    text-align: center;
+    padding: 50px 20px;
+    color: #777;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.error {
+    background: #ffebee;
+    color: #c62828;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.message {
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .sidebar {
+        width: 70px;
+        padding: 20px 5px;
+    }
+
+    .logo {
+        font-size: 0;
+    }
+
+    .logo span {
+        font-size: 20px;
+    }
+
+    .menu li {
+        font-size: 0;
+        text-align: center;
+        padding: 14px 3px;
+    }
+
+    .main {
+        margin-left: 70px;
+        padding: 18px 12px;
+    }
+
+    .header {
+        display: block;
+    }
+
+    .actions {
+        margin-top: 15px;
+    }
+
+    .btn {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .events-container {
+        padding: 15px;
+    }
+
+    .event-info {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="logo">Salesforce <span>AI</span></div>
+
+    <ul class="menu">
+        <li onclick="navigate('/')">🏠 Dashboard</li>
+        <li onclick="navigate('/create-event')">📅 Create Event</li>
+        <li class="active">📋 My Events</li>
+        <li onclick="navigate('/ai-agent')">🤖 AI Event Agent</li>
+        <li onclick="navigate('/analytics')">📊 Analytics</li>
+        <li onclick="navigate('/settings')">⚙️ Settings</li>
+    </ul>
+</aside>
+
+<main class="main">
+
+    <div class="header">
+        <div>
+            <h1>My Events</h1>
+            <p>View and manage all your created events.</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn create-btn"
+                    onclick="navigate('/create-event')">
+                + Create Event
+            </button>
+
+            <button class="btn csv-btn"
+                    onclick="downloadCSV()">
+                📥 Download CSV
+            </button>
+
+            <button class="btn refresh-btn"
+                    onclick="loadEvents()">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="events-container">
+        <div id="summary" class="summary">Loading events...</div>
+        <div id="eventsList">
+            <div class="loading">Loading events...</div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+const API = "/api/events";
+
+function navigate(path) {
+    window.location.href = path;
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function(char) {
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char];
+    });
+}
+
+function showMessage(text, isError = false) {
+    const box = document.getElementById("message");
+
+    box.textContent = text;
+    box.style.display = "block";
+    box.style.background = isError ? "#ffebee" : "#e8f5e9";
+    box.style.color = isError ? "#c62828" : "#2e7d32";
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 4000);
+}
+
+async function loadEvents() {
+    const eventsList = document.getElementById("eventsList");
+    const summary = document.getElementById("summary");
+
+    eventsList.innerHTML =
+        '<div class="loading">Loading events...</div>';
+
+    try {
+        const response = await fetch(API);
+
+        if (!response.ok) {
+            throw new Error("Unable to load events.");
+        }
+
+        const result = await response.json();
+
+        // Supports either a direct array or {events: [...]}
+        const events = Array.isArray(result)
+            ? result
+            : (result.events || []);
+
+        summary.textContent = "Total Events: " + events.length;
+
+        if (events.length === 0) {
+            eventsList.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon">📅</div>
+                    <h2>No Events Yet</h2>
+                    <p>Create your first event to get started.</p>
+                </div>`;
+            return;
+        }
+
+        eventsList.innerHTML = "";
+
+        events.forEach(event => {
+            const card = document.createElement("div");
+            card.className = "event-card";
+
+            const eventName = escapeHTML(event.name || "Unnamed Event");
+            const eventType = escapeHTML(
+                event.event_type || event.type || "Other"
+            );
+            const eventDate = escapeHTML(event.date || "-");
+            const eventTime = escapeHTML(event.time || "-");
+            const location = escapeHTML(event.location || "-");
+            const participants = escapeHTML(event.participants ?? "-");
+            const description = escapeHTML(
+                event.description || "No description provided."
+            );
+
+            card.innerHTML = `
+                <div class="event-top">
+                    <div class="event-name">${eventName}</div>
+                    <div class="status">${eventDate}</div>
+                </div>
+
+                <div class="event-info">
+                    <div>📌 <strong>Type:</strong> ${eventType}</div>
+                    <div>📅 <strong>Date:</strong> ${eventDate}</div>
+                    <div>🕐 <strong>Time:</strong> ${eventTime}</div>
+                    <div>📍 <strong>Location:</strong> ${location}</div>
+                    <div>👥 <strong>Participants:</strong> ${participants}</div>
+                </div>
+
+                <div class="description">
+                    <strong>Description:</strong><br>
+                    ${description}
+                </div>
+
+                <div class="event-actions">
+                    <button class="btn delete-btn">🗑️ Delete Event</button>
+                </div>
+            `;
+
+            card.querySelector(".delete-btn").addEventListener(
+                "click",
+                () => deleteEvent(event.id, event.name)
+            );
+
+            eventsList.appendChild(card);
+        });
+
+    } catch (error) {
+        summary.textContent = "Unable to load events.";
+
+        eventsList.innerHTML = `
+            <div class="error">
+                ❌ Cannot connect to the backend.
+                <br><br>
+                Check that Flask is running and try Refresh.
+            </div>`;
+    }
+}
+
+async function deleteEvent(id, name) {
+    if (!id) {
+        showMessage("This event has no valid ID.", true);
+        return;
+    }
+
+    if (!confirm('Delete event "' + (name || "this event") + '"?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            API + "/" + encodeURIComponent(id),
+            { method: "DELETE" }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || "Delete failed.");
+        }
+
+        showMessage("Event deleted successfully.");
+        await loadEvents();
+
+    } catch (error) {
+        showMessage(error.message || "Unable to delete event.", true);
+    }
+}
+
+function downloadCSV() {
+    // Opens the Flask CSV export endpoint.
+    window.location.href = "/api/events/export/csv";
+}
+
+loadEvents();
+</script>
+
+</body>
+</html>

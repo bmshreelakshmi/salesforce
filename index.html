@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salesforce AI Event Manager</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f3f5fa;
+    color: #303846;
+}
+
+.sidebar {
+    width: 270px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1764a0, #084576);
+    color: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 25px 15px;
+}
+
+.sidebar h2 {
+    margin: 0 10px 55px;
+    font-size: 25px;
+}
+
+.sidebar button {
+    display: block;
+    width: 100%;
+    padding: 18px 15px;
+    margin-bottom: 12px;
+    border: none;
+    border-radius: 10px;
+    text-align: left;
+    color: white;
+    background: transparent;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.sidebar button:hover,
+.sidebar button.active {
+    background: linear-gradient(90deg, #2196d2, #35b1e4);
+}
+
+.main {
+    margin-left: 270px;
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.header h1 {
+    font-size: 36px;
+    font-weight: 500;
+}
+
+.header p {
+    color: #777;
+    margin-top: 8px;
+}
+
+.admin {
+    background: white;
+    padding: 15px 22px;
+    border-radius: 10px;
+}
+
+.hero {
+    padding: 45px;
+    border-radius: 18px;
+    color: white;
+    background: linear-gradient(110deg, #0785bc, #17477f);
+    margin-bottom: 35px;
+}
+
+.hero h2 {
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    line-height: 1.7;
+    margin-bottom: 25px;
+}
+
+.btn {
+    border: none;
+    padding: 13px 22px;
+    background: #0785bc;
+    color: white;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.hero .btn {
+    background: #36a9db;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    margin-bottom: 35px;
+}
+
+.stat-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px #00000008;
+}
+
+.stat-card p {
+    color: #777;
+    margin-bottom: 25px;
+}
+
+.stat-card h2 {
+    font-size: 35px;
+    font-weight: 400;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px #00000008;
+}
+
+.card h2 {
+    font-size: 25px;
+    font-weight: 500;
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin: 20px 0 10px;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    font-size: 16px;
+    background: white;
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+}
+
+th, td {
+    padding: 18px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background: #f3f5fa;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #e6f5eb;
+    color: #176b36;
+}
+
+@media(max-width: 1000px) {
+    .sidebar {
+        width: 210px;
+    }
+
+    .main {
+        margin-left: 210px;
+        padding: 20px;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 15px;
+    }
+
+    .sidebar h2 {
+        margin: 10px 5px 20px;
+    }
+
+    .sidebar button {
+        display: inline-block;
+        width: auto;
+        padding: 10px;
+        font-size: 13px;
+        margin: 3px;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 27px;
+    }
+
+    .admin {
+        padding: 10px;
+    }
+
+    .hero {
+        padding: 25px;
+    }
+
+    .hero h2 {
+        font-size: 24px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .card {
+        padding: 18px;
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 550px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <h2>Salesforce AI</h2>
+
+    <button class="active" onclick="showPage('dashboard', this)">
+        🏠 Dashboard
+    </button>
+
+    <button onclick="showPage('create', this)">
+        ▦ Create Event
+    </button>
+
+    <button onclick="showPage('events', this)">
+        ▣ My Events
+    </button>
+
+    <button onclick="showPage('agent', this)">
+        🤖 AI Event Agent
+    </button>
+
+    <button onclick="showPage('analytics', this)">
+        📊 Analytics
+    </button>
+
+    <button onclick="showPage('settings', this)">
+        ⚙ Settings
+    </button>
+</aside>
+
+<main class="main">
+
+<div class="header">
+    <div>
+        <h1 id="pageTitle">Event Manager</h1>
+        <p>AI-powered event management platform</p>
+    </div>
+
+    <div class="admin">👤 Admin</div>
+</div>
+
+<!-- Dashboard -->
+<section id="dashboard" class="page active">
+
+    <div class="hero">
+        <h2>Welcome to Salesforce AI Event Manager 👋</h2>
+        <p>
+            Manage events, generate AI-powered plans, organize tasks
+            and track event activities from one place.
+        </p>
+
+        <button class="btn" onclick="navigate('create')">
+            + Create New Event
+        </button>
+
+        <button class="btn" onclick="downloadCSV()" style="margin-left: 10px;">
+            📥 Download CSV
+        </button>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <p>Total Events</p>
+            <h2 id="totalEvents">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Upcoming Events</p>
+            <h2 id="upcomingEvents">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Completed Events</p>
+            <h2 id="completedEvents">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>AI Plans Generated</p>
+            <h2 id="aiPlans">0</h2>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Recent Events</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody id="recentEvents">
+                <tr>
+                    <td colspan="4">No events available.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Create Event -->
+<section id="create" class="page">
+    <div class="card">
+        <h2>Create New Event</h2>
+
+        <form id="eventForm">
+
+            <label>Event Name</label>
+            <input type="text" id="eventName"
+                   placeholder="Enter event name" required>
+
+            <label>Participants</label>
+            <input type="number" id="participants"
+                   placeholder="Number of participants"
+                   min="1" required>
+
+            <label>Event Date</label>
+            <input type="date" id="eventDate" required>
+
+            <label>Event Time</label>
+            <input type="time" id="eventTime" required>
+
+            <label>Location</label>
+            <input type="text" id="eventLocation"
+                   placeholder="Enter event location" required>
+
+            <label>Event Type</label>
+            <select id="eventType" required>
+                <option value="">Select event type</option>
+                <option>Conference</option>
+                <option>Workshop</option>
+                <option>Wedding</option>
+                <option>Birthday</option>
+                <option>Corporate</option>
+                <option>Other</option>
+            </select>
+
+            <br><br>
+            <button class="btn" type="submit">Create Event</button>
+        </form>
+
+        <div id="createMessage"></div>
+    </div>
+</section>
+
+<!-- My Events -->
+<section id="events" class="page">
+    <div class="card">
+        <h2>My Events</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="eventTable">
+                <tr>
+                    <td colspan="5">No events available.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- AI Event Agent -->
+<section id="agent" class="page">
+    <div class="card">
+        <h2>🤖 AI Event Agent</h2>
+
+        <p>Ask AI for event planning suggestions.</p>
+
+        <label>Your Question</label>
+
+        <textarea id="aiQuestion"
+            placeholder="Ask your event planning question..."></textarea>
+
+        <br><br>
+
+        <button class="btn" onclick="askAI()">Ask AI</button>
+
+        <div id="aiResponse"></div>
+    </div>
+</section>
+
+<!-- Analytics -->
+<section id="analytics" class="page">
+    <div class="card">
+        <h2>Analytics</h2>
+
+        <div class="stats">
+            <div class="stat-card">
+                <p>Total Events</p>
+                <h2 id="analyticsTotal">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Upcoming</p>
+                <h2 id="analyticsUpcoming">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Completed</p>
+                <h2 id="analyticsCompleted">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>AI Plans</p>
+                <h2 id="analyticsPlans">0</h2>
+            </div>
+        </div>
+
+        <h3>Events by Type</h3>
+        <div id="typeAnalytics"></div>
+    </div>
+</section>
+
+<!-- Settings -->
+<section id="settings" class="page">
+    <div class="card">
+        <h2>Settings</h2>
+
+        <form id="settingsForm">
+            <label>Admin Name</label>
+            <input id="adminName" type="text"
+                   placeholder="Enter admin name" required>
+
+            <label>Email</label>
+            <input id="adminEmail" type="email"
+                   placeholder="Enter email" required>
+
+            <br><br>
+            <button class="btn" type="submit">Save Settings</button>
+        </form>
+
+        <div id="settingsMessage"></div>
+    </div>
+</section>
+
+</main>
+
+<script>
+let events = JSON.parse(localStorage.getItem("sf_events") || "[]");
+let aiPlans = Number(localStorage.getItem("sf_ai_plans") || 0);
+
+const titles = {
+    dashboard: "Event Manager",
+    create: "Create Event",
+    events: "My Events",
+    agent: "AI Event Agent",
+    analytics: "Analytics",
+    settings: "Settings"
+};
+
+function showPage(page, button) {
+    document.querySelectorAll(".page").forEach(section => {
+        section.classList.remove("active");
+    });
+
+    document.getElementById(page).classList.add("active");
+    document.getElementById("pageTitle").textContent = titles[page];
+
+    document.querySelectorAll(".sidebar button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    if (button) button.classList.add("active");
+
+    document.querySelectorAll(".sidebar button").forEach(btn => {
+        if (btn.getAttribute("onclick")?.includes("'" + page + "'")) {
+            btn.classList.add("active");
+        }
+    });
+
+    render();
+}
+
+function navigate(page) {
+    showPage(page);
+}
+
+function downloadCSV() {
+    window.location.href = "/api/events/export/csv";
+}
+
+function saveEvents() {
+    localStorage.setItem("sf_events", JSON.stringify(events));
+}
+
+function render() {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const upcoming = events.filter(e => e.date >= today).length;
+    const completed = events.filter(e => e.date < today).length;
+
+    document.getElementById("totalEvents").textContent = events.length;
+    document.getElementById("upcomingEvents").textContent = upcoming;
+    document.getElementById("completedEvents").textContent = completed;
+    document.getElementById("aiPlans").textContent = aiPlans;
+
+    document.getElementById("analyticsTotal").textContent = events.length;
+    document.getElementById("analyticsUpcoming").textContent = upcoming;
+    document.getElementById("analyticsCompleted").textContent = completed;
+    document.getElementById("analyticsPlans").textContent = aiPlans;
+
+    const recent = document.getElementById("recentEvents");
+    const table = document.getElementById("eventTable");
+
+    if (events.length === 0) {
+        recent.innerHTML =
+            '<tr><td colspan="4">No events available.</td></tr>';
+
+        table.innerHTML =
+            '<tr><td colspan="5">No events available.</td></tr>';
+    } else {
+        recent.innerHTML = events.slice(-5).reverse().map(e => `
+            <tr>
+                <td>${escapeHTML(e.name)}</td>
+                <td>${escapeHTML(e.date)}</td>
+                <td>${escapeHTML(e.location)}</td>
+                <td>${escapeHTML(e.type)}</td>
+            </tr>
+        `).join("");
+
+        table.innerHTML = events.map((e, i) => `
+            <tr>
+                <td>${escapeHTML(e.name)}</td>
+                <td>${escapeHTML(e.date)}</td>
+                <td>${escapeHTML(e.location)}</td>
+                <td>${escapeHTML(e.type)}</td>
+                <td>
+                    <button class="btn"
+                        onclick="deleteEvent(${i})">Delete</button>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    const types = {};
+
+    events.forEach(e => {
+        types[e.type] = (types[e.type] || 0) + 1;
+    });
+
+    const analytics = document.getElementById("typeAnalytics");
+
+    analytics.innerHTML = Object.keys(types).length
+        ? Object.entries(types).map(([type, count]) => `
+            <p style="margin-top:15px">
+                <strong>${escapeHTML(type)}</strong> — ${count} event(s)
+            </p>
+        `).join("")
+        : "<p style='margin-top:15px'>No analytics available yet.</p>";
+}
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+document.getElementById("eventForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const date = document.getElementById("eventDate").value;
+
+    if (date < new Date().toISOString().slice(0, 10)) {
+        alert("Please select today or a future date.");
+        return;
+    }
+
+    const event = {
+        name: document.getElementById("eventName").value.trim(),
+        participants: Number(document.getElementById("participants").value),
+        date,
+        time: document.getElementById("eventTime").value,
+        location: document.getElementById("eventLocation").value.trim(),
+        type: document.getElementById("eventType").value
+    };
+
+    events.push(event);
+    saveEvents();
+
+    document.getElementById("createMessage").innerHTML =
+        '<div class="message">Event created successfully!</div>';
+
+    this.reset();
+    render();
+});
+
+function deleteEvent(index) {
+    if (confirm("Are you sure you want to delete this event?")) {
+        events.splice(index, 1);
+        saveEvents();
+        render();
+    }
+}
+
+function askAI() {
+    const question = document.getElementById("aiQuestion").value.trim();
+    const response = document.getElementById("aiResponse");
+
+    if (!question) {
+        alert("Please enter your event planning question.");
+        return;
+    }
+
+    const q = question.toLowerCase();
+
+    let answer;
+
+    if (q.includes("budget")) {
+        answer = `
+            <h3>Event Budget Plan</h3>
+            <ul>
+                <li>Venue: 30% of the budget</li>
+                <li>Food and refreshments: 25%</li>
+                <li>Decoration: 15%</li>
+                <li>Marketing: 10%</li>
+                <li>Equipment and technology: 10%</li>
+                <li>Emergency reserve: 10%</li>
+            </ul>`;
+    } else if (q.includes("wedding")) {
+        answer = `
+            <h3>Wedding Planning Checklist</h3>
+            <p>1. Choose a venue and date.</p>
+            <p>2. Prepare the guest list.</p>
+            <p>3. Arrange catering and decoration.</p>
+            <p>4. Book photography and entertainment.</p>
+            <p>5. Prepare a detailed event schedule.</p>`;
+    } else {
+        answer = `
+            <h3>Event Planning Suggestions</h3>
+            <p>1. Define your event goals and budget.</p>
+            <p>2. Select a suitable venue and date.</p>
+            <p>3. Estimate the number of participants.</p>
+            <p>4. Organize catering, decoration and equipment.</p>
+            <p>5. Assign responsibilities to your team.</p>
+            <p>6. Create a timeline and backup plan.</p>
+            <p>7. Collect participant feedback after the event.</p>`;
+    }
+
+    response.innerHTML = `
+        <div class="card" style="margin-top:20px">
+            ${answer}
+            <p style="margin-top:15px;color:#777">
+                Demo suggestions generated locally.
+                Connect an AI API for real AI responses.
+            </p>
+        </div>`;
+
+    aiPlans++;
+    localStorage.setItem("sf_ai_plans", aiPlans);
+    render();
+}
+
+document.getElementById("settingsForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("adminName").value.trim();
+    const email = document.getElementById("adminEmail").value.trim();
+
+    localStorage.setItem("sf_admin", JSON.stringify({name, email}));
+
+    document.querySelector(".admin").textContent = "👤 " + name;
+
+    document.getElementById("settingsMessage").innerHTML =
+        '<div class="message">Settings saved successfully!</div>';
+});
+
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem("sf_admin") || "null");
+
+    if (settings) {
+        document.getElementById("adminName").value = settings.name;
+        document.getElementById("adminEmail").value = settings.email;
+
+        document.querySelector(".admin").textContent = "👤 " + settings.name;
+    }
+}
+
+render();
+loadSettings();
+</script>
+
+</body>
+</html>
